@@ -3,32 +3,33 @@ import time
 import numpy
 
 WEBSITE_TEMPLATE = (
-    {'page': 'index.html', 'prob': 80, 'bytes': 1058, 'code': 200},
-    {'page': 'contact.html', 'prob': 50, 'bytes': 1029, 'code': 200},
-    {'page': 'about.html', 'prob': 50, 'bytes': 954, 'code': 200},
-    {'page': 'career.html', 'prob': 20, 'bytes': 699, 'code': 200},
-    {'page': 'blog/', 'prob': 50, 'bytes': 999, 'code': 200},
+    {'page': 'index.html','bytes': 1058, 'code': 200},
+    {'page': 'contact.html', 'bytes': 1029, 'code': 200},
+    {'page': 'about.html', 'bytes': 954, 'code': 200},
+    {'page': 'career.html', 'bytes': 699, 'code': 200},
+    {'page': 'blog/', 'bytes': 999, 'code': 200},
     [
-        {'page': '/blog/post1.html', 'prob': 40, 'bytes': 628, 'code': 200}, 
-        {'page': '/blog/post2.html', 'prob': 40, 'bytes': 456, 'code': 200}, 
-        {'page': '/blog/post3.html', 'prob': 40, 'bytes': 852, 'code': 200}, 
-        {'page': '/blog/post4.html', 'prob': 40, 'bytes': 349, 'code': 200}, 
-        {'page': '/blog/post5.html', 'prob': 40, 'bytes': 222, 'code': 200}, 
-        {'page': '/blog/post6.html', 'prob': 40, 'bytes': 897, 'code': 200}, 
-        {'page': '/blog/post7.html', 'prob': 40, 'bytes': 623, 'code': 200}, 
-        {'page': '/blog/post8.html', 'prob': 40, 'bytes': 864, 'code': 200}, 
-        {'page': '/blog/post9.html', 'prob': 40, 'bytes': 371, 'code': 200}, 
-        {'page': '/blog/post10.html', 'prob': 40, 'bytes': 128, 'code': 200}
+        {'page': '/blog/post1.html', 'bytes': 628, 'code': 200}, 
+        {'page': '/blog/post2.html', 'bytes': 456, 'code': 200}, 
+        {'page': '/blog/post3.html', 'bytes': 852, 'code': 200}, 
+        {'page': '/blog/post4.html', 'bytes': 349, 'code': 200}, 
+        {'page': '/blog/post5.html', 'bytes': 222, 'code': 200}, 
+        {'page': '/blog/post6.html', 'bytes': 897, 'code': 200}, 
+        {'page': '/blog/post7.html', 'bytes': 623, 'code': 200}, 
+        {'page': '/blog/post8.html', 'bytes': 864, 'code': 200}, 
+        {'page': '/blog/post9.html', 'bytes': 371, 'code': 200}, 
+        {'page': '/blog/post10.html', 'bytes': 128, 'code': 200}
     ]
 )
 
 RULES = {
-    'index.html': {'about.html': 20, 'contact.html': 40, 'career.html': 60, 'blog.html': 80},
-    'about.html': {'index.html': 20, 'contact.html': 20, 'career.html': 20}, 
-    'contact.html': {'about.html': 40, 'career.html': 80}, 
-    'blog/': {'index.html': 30, 'posts': 80}, 
-    'career.html': {'index.html': 40, 'about.html': 80}, 
-    'posts': {'index.html': 20, 'posts': 50}#, 'blog/': 80}
+    'start':(['index.html','about.html','contact.html'],[60,90,100]),# {'index.html': 60,'about.html': 90,'contact.html': 100},
+    'index.html':(['index.html','about.html','contact.html'],[60,90,100]), #{'about.html': 20, 'contact.html': 40, 'career.html': 60, 'blog.html': 80},
+    'about.html':(['index.html','career.html','contact.html'],[40,60,100]), #{'index.html': 20, 'contact.html': 20, 'career.html': 20}, 
+    'contact.html':(['index.html','about.html','career.html'],[30,60,100]), #{'about.html': 40, 'career.html': 80}, 
+    'blog/':(['index.html','posts'],[50,100]), #{'index.html': 30, 'posts': 80}, 
+    'career.html':(['index.html','about.html'],[40,100]), #{'index.html': 40, 'about.html': 80}, 
+    'posts': (['index.html','posts'],[50,100])#{'index.html': 20, 'posts': 50}#, 'blog/': 80}
     }
 
 #Set list of IPS
@@ -66,49 +67,40 @@ def create_fake_view(get_page=""):
         #print "Not page: "+random_page['page']
         return random_page
 
+def get_page(page):
+    probs=RULES[page][1]
+    new_pages=RULES[page][0]
+    rand=random.randint(0,99)
+    new_page=''
+    for i in range(len(probs)):
+        if rand<probs[i]:
+            new_page=new_pages[i]
+    return new_page      
+
+
 def create_user_activity():
     pages = []
-    tim = time.time()
     finished = []
-    previous_page = create_fake_view()
+    previous_page = "start"
     next_page = ""
-    exit_num = 15
+    exit_num = 20
     exit = False
 
     while exit == False:
+        tim = time.time()+random.randint(1, 120)
         #Get random number for the exit route or next route
         rand = random.randint(0, 100)
         if rand <= exit_num:
             exit = True
         else:
             #Create random user view
-            if next_page == "":
-                activity = create_fake_view()
-                while previous_page == activity['page']:
-                    activity = create_fake_view()
-            else:
-                activity = create_fake_view(next_page)
-                while previous_page == activity['page']:
-                    activity = create_fake_view(next_page)
+            current_page=get_page(previous_page)
+            previous_page = current_page
+            detailed_page = create_fake_view(current_page)
+            tim += int(numpy.random.normal(60.0,60.0))
+            detailed_page['timestamp'] = tim 
+            pages.append(detailed_page)
 
-            #Check if a post was accessed before the blog page was
-            if "/blog" in activity['page'] and "blog/" not in finished:
-                pass
-            else:
-                activity['timestamp'] = time.time() + int(numpy.random.normal(60.0, 60.0))
-                finished.append(activity['page'])
-                previous_page = activity['page']
-                pages.append(activity)
-                for i in RULES.keys():
-                    if i == activity['page'] and "/blog" not in activity['page']:
-                        for p in RULES[i].keys():
-                            if rand < RULES[i][p] and previous_page != p:
-                                next_page = p
-                    else:
-                        if i == "posts":
-                            for p in RULES[i].keys():
-                                if rand < RULES[i][p] and previous_page != p:
-                                    next_page = p
     #print pages
 
     return {'pages': pages}
@@ -150,3 +142,4 @@ if __name__ == '__main__':
         package['ip'] = ip
         write_logs(package)
     print "Done."
+
