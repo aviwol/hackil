@@ -24,12 +24,12 @@ WEBSITE_TEMPLATE = (
 
 RULES = {
     'start':(['index.html','about.html','contact.html'],[60,90,100]),# {'index.html': 60,'about.html': 90,'contact.html': 100},
-    'index.html':(['index.html','about.html','contact.html'],[60,90,100]), #{'about.html': 20, 'contact.html': 40, 'career.html': 60, 'blog.html': 80},
+    'index.html':(['index.html','about.html','contact.html', 'blog/'],[40,60,80,100]), #{'about.html': 20, 'contact.html': 40, 'career.html': 60, 'blog.html': 80},
     'about.html':(['index.html','career.html','contact.html'],[40,60,100]), #{'index.html': 20, 'contact.html': 20, 'career.html': 20}, 
     'contact.html':(['index.html','about.html','career.html'],[30,60,100]), #{'about.html': 40, 'career.html': 80}, 
     'blog/':(['index.html','posts'],[50,100]), #{'index.html': 30, 'posts': 80}, 
     'career.html':(['index.html','about.html'],[40,100]), #{'index.html': 40, 'about.html': 80}, 
-    'posts': (['index.html','posts'],[50,100])#{'index.html': 20, 'posts': 50}#, 'blog/': 80}
+    'posts': (['index.html','posts'],[40,100])#{'index.html': 20, 'posts': 50}#, 'blog/': 80}
     }
 
 #Set list of IPS
@@ -73,7 +73,7 @@ def get_page(page):
     rand=random.randint(0,99)
     new_page=''
     for i in range(len(probs)):
-        if rand<probs[i]:
+        if rand<probs[i] and new_pages[i] != page:
             new_page=new_pages[i]
     return new_page      
 
@@ -85,9 +85,9 @@ def create_user_activity():
     next_page = ""
     exit_num = 20
     exit = False
+    timer = time.time()
 
     while exit == False:
-        tim = time.time()+random.randint(1, 120)
         #Get random number for the exit route or next route
         rand = random.randint(0, 100)
         if rand <= exit_num:
@@ -97,10 +97,9 @@ def create_user_activity():
             current_page=get_page(previous_page)
             previous_page = current_page
             detailed_page = create_fake_view(current_page)
-            tim += int(numpy.random.normal(60.0,60.0))
-            detailed_page['timestamp'] = tim 
+            timer += int(numpy.random.normal(60.0,60.0))
+            detailed_page['timestamp'] = timer
             pages.append(detailed_page)
-
     #print pages
 
     return {'pages': pages}
@@ -126,8 +125,7 @@ def create_hacker_activity():
              
 
 if __name__ == '__main__':
-    #print create_fake_view("blog/")
-    for i in range(0, 1):
+    for i in range(0, 10):
         randi = random.randint(0, 100)
         ip = create_fake_ip()
         if ip in IPS:
